@@ -1,0 +1,33 @@
+{
+  "name": "BetaflightBlackboxExplorer",
+  "version": "2.5.7",
+  "description": "A data analyser for Betaflight Flight Controller logs.",
+  "main": "main.js",
+  "scripts": {
+    "postinstall": "install-app-deps",
+    "start": "electron .",
+    "package": "electron-packager . ElectronStart --out=./packages --version=1.4.3 --overwrite",
+    "build": "build"
+  },
+  "build": {
+    "appId": "com.nova-controls.garykeeble",
+    "mac": {
+      "category": "public.app-category.hobby"
+    },
+    "win": {
+      "iconUrl": "(windows-only) https link to icon"
+    }
+  },
+  "devDependencies": {
+    "electron-builder": "next",
+    "electron": "1.4.3"
+  },
+  "repository": "https://github.com/GaryKeeble/electron-blackbox-log-viewer",
+  "keywords": [
+    "betaflight",
+    "blackbox",
+    "viewer"
+  ],
+  "author": "Gary.S.Keeble",
+  "license": "CC0-1.0"
+}
