@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "install-app-deps",
     "start": "electron .",
-    "package": "electron-packager . ElectronStart --out=./packages --version=1.4.3 --overwrite",
+    "package": "electron-packager . 'Betaflight Blackbox Viewer' --out=./packages --version=1.4.3 --icon=resources/images/icons/bf_blackbox_logo.icns --overwrite",
     "build": "build"
   },
   "build": {
