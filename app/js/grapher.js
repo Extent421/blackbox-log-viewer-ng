@@ -272,12 +272,13 @@ function FlightLogGrapher(flightLog, graphConfig, canvas, craftCanvas, analyserC
             }            
         }
 
+        var yawValue = ((userSettings.stickInvertYaw)?1:-1) * rcCommand[2];
         // map the stick positions based upon selected stick mode (default is mode 2)
 
         //Compute the position of the sticks in the range [-1..1] (left stick x, left stick y, right stick x, right stick y)
         switch(options.stickMode) {
             case STICK_MODE_1:
-                stickPositions[0] = -rcCommand[2] / config.yawStickMax; //Yaw
+                stickPositions[0] = yawValue / config.yawStickMax; //Yaw
                 stickPositions[1] = pitchStickCurve.lookup(-rcCommand[1]); //Pitch 
                 stickPositions[2] = pitchStickCurve.lookup(rcCommand[0]); //Roll
                 stickPositions[3] = (1500 - rcCommand[3]) / 500; //Throttle
@@ -293,7 +294,7 @@ function FlightLogGrapher(flightLog, graphConfig, canvas, craftCanvas, analyserC
             case STICK_MODE_3:
                 stickPositions[0] = pitchStickCurve.lookup(rcCommand[0]); //Roll
                 stickPositions[1] = pitchStickCurve.lookup(-rcCommand[1]); //Pitch
-                stickPositions[2] = -rcCommand[2] / config.yawStickMax; //Yaw
+                stickPositions[2] = yawValue / config.yawStickMax; //Yaw
                 stickPositions[3] = (1500 - rcCommand[3]) / 500; //Throttle
 
                 if(stickLabel!=null) {
@@ -307,7 +308,7 @@ function FlightLogGrapher(flightLog, graphConfig, canvas, craftCanvas, analyserC
             case STICK_MODE_4:
                 stickPositions[0] = pitchStickCurve.lookup(rcCommand[0]); //Roll
                 stickPositions[1] = (1500 - rcCommand[3]) / 500; //Throttle
-                stickPositions[2] = -rcCommand[2] / config.yawStickMax; //Yaw
+                stickPositions[2] = yawValue / config.yawStickMax; //Yaw
                 stickPositions[3] = pitchStickCurve.lookup(-rcCommand[1]); //Pitch
 
                 if(stickLabel!=null) {
@@ -319,7 +320,7 @@ function FlightLogGrapher(flightLog, graphConfig, canvas, craftCanvas, analyserC
 
                 break;
             default: // Mode 2
-                stickPositions[0] = -rcCommand[2] / config.yawStickMax; //Yaw
+                stickPositions[0] = yawValue / config.yawStickMax; //Yaw
                 stickPositions[1] = (1500 - rcCommand[3]) / 500; //Throttle
                 stickPositions[2] = pitchStickCurve.lookup(rcCommand[0]); //Roll
                 stickPositions[3] = pitchStickCurve.lookup(-rcCommand[1]); //Pitch
@@ -604,14 +605,14 @@ function FlightLogGrapher(flightLog, graphConfig, canvas, craftCanvas, analyserC
 
     //Draw an background for the line for a graph (at the origin and spanning the window)
     function drawAxisBackground(plotHeight) {
-        canvasContext.strokeStyle = "rgba(255,255,255,0.1)";
-        canvasContext.lineWidth = plotHeight;
-        
-        canvasContext.beginPath();
-        canvasContext.moveTo(0, 0);
-        canvasContext.lineTo(canvas.width, 0);
-        
-        canvasContext.stroke();
+        var axisGradient = canvasContext.createLinearGradient(0,-plotHeight/2,0,plotHeight/2);
+        axisGradient.addColorStop(0.0,   'rgba(255,255,255,0.1)');
+        axisGradient.addColorStop(0.15,  'rgba(0,0,0,0)');
+        axisGradient.addColorStop(0.5,   'rgba(0,0,0,0)');
+        axisGradient.addColorStop(0.85,  'rgba(0,0,0,0)');
+        axisGradient.addColorStop(1.0,   'rgba(255,255,255,0.1)');
+        canvasContext.fillStyle = axisGradient;
+        canvasContext.fillRect(0,-plotHeight/2,canvas.width, plotHeight);
     }
 
     //Draw a grid

@@ -138,15 +138,22 @@ try {
 		var samples = new Float64Array(MAX_ANALYSER_LENGTH/1000);
 
         // Loop through all the samples in the chunks and assign them to a sample array ready to pass to the FFT.
-        var sampleIndex = 0;
+        fftData.samples	= 0;
 		for (var chunkIndex = 0; chunkIndex < allChunks.length; chunkIndex++) {
 			var chunk = allChunks[chunkIndex];
 			for (var frameIndex = 0; frameIndex < chunk.frames.length; frameIndex++) {
-				samples[sampleIndex++] = (dataBuffer.curve.lookupRaw(chunk.frames[frameIndex][dataBuffer.fieldIndex]));
+				samples[fftData.samples++] = (dataBuffer.curve.lookupRaw(chunk.frames[frameIndex][dataBuffer.fieldIndex]));
 			}
 		}
 
-		//calculate fft
+        if(userSettings.analyserHanning) {
+            // apply hanning window function
+            for(var i=0; i<fftData.samples; i++) {
+                samples[i] *= 0.5 * (1-Math.cos((2*Math.PI*i)/(fftData.samples - 1)));
+            }
+        }
+
+        //calculate fft
 		var fftLength = samples.length;
 		var fftOutput = new Float64Array(fftLength * 2);
 		var fft = new FFT.complex(fftLength, false);
@@ -212,10 +219,10 @@ try {
 		var x = 0;
 
 		var barGradient = canvasCtx.createLinearGradient(0,HEIGHT,0,0);
-			barGradient.addColorStop(0,   'rgba(0,255,0,0.2)');
-			barGradient.addColorStop(0.15, 'rgba(128,255,0,0.2)');
-			barGradient.addColorStop(0.45, 'rgba(255,0,0,0.5)');
-			barGradient.addColorStop(1,   'rgba(255,128,128,1.0)');
+            barGradient.addColorStop(constrain(0/analyserZoomY,0,1),      'rgba(0,255,0,0.2)');
+            barGradient.addColorStop(constrain(0.15/analyserZoomY,0,1),   'rgba(128,255,0,0.2)');
+            barGradient.addColorStop(constrain(0.45/analyserZoomY,0,1),   'rgba(255,0,0,0.5)');
+            barGradient.addColorStop(constrain(1/analyserZoomY, 0, 1),    'rgba(255,128,128,1.0)');
         canvasCtx.fillStyle = barGradient; //'rgba(0,255,0,0.3)'; //green
 
         var fftScale = HEIGHT / (analyserZoomY*100);
@@ -256,22 +263,26 @@ try {
 			}
 		}
 		offset++; // make some space!
-		if(dataBuffer.fieldName.match(/(.*yaw.*)/i)!=null) {
-			if(flightLog.getSysConfig().yaw_lpf_hz!=null)      		drawMarkerLine(flightLog.getSysConfig().yaw_lpf_hz,  PLOTTED_BLACKBOX_RATE, 'YAW LPF cutoff', WIDTH, HEIGHT, (15*offset++) + MARGIN);
-		} else {
-			if(flightLog.getSysConfig().dterm_lpf_hz!=null)    		drawMarkerLine(flightLog.getSysConfig().dterm_lpf_hz,  PLOTTED_BLACKBOX_RATE, 'D-TERM LPF cutoff', WIDTH, HEIGHT, (15*offset++) + MARGIN);
-			if(flightLog.getSysConfig().dterm_notch_hz!=null && flightLog.getSysConfig().dterm_notch_cutoff!=null ) {
-				if(flightLog.getSysConfig().dterm_notch_hz > 0 && flightLog.getSysConfig().dterm_notch_cutoff > 0) {
-					var gradient = canvasCtx.createLinearGradient(0,0,0,(HEIGHT));
-					gradient.addColorStop(1,   'rgba(128,128,255,0.10)');
-					gradient.addColorStop(0,   'rgba(128,128,255,0.35)');
-					drawMarkerLine(flightLog.getSysConfig().dterm_notch_hz,  PLOTTED_BLACKBOX_RATE, null, WIDTH, HEIGHT, (15*offset) + MARGIN, gradient, (flightLog.getSysConfig().dterm_notch_hz - flightLog.getSysConfig().dterm_notch_cutoff));
-					drawMarkerLine(flightLog.getSysConfig().dterm_notch_hz,  PLOTTED_BLACKBOX_RATE, 'D-TERM notch center', WIDTH, HEIGHT, (15*offset++) + MARGIN); // highlight the center
-					drawMarkerLine(flightLog.getSysConfig().dterm_notch_cutoff,  PLOTTED_BLACKBOX_RATE, 'D-TERM notch cutoff', WIDTH, HEIGHT, (15*offset++) + MARGIN);
+		try {
+			if(dataBuffer.fieldName.match(/(.*yaw.*)/i)!=null) {
+				if(flightLog.getSysConfig().yaw_lpf_hz!=null)      		drawMarkerLine(flightLog.getSysConfig().yaw_lpf_hz,  PLOTTED_BLACKBOX_RATE, 'YAW LPF cutoff', WIDTH, HEIGHT, (15*offset++) + MARGIN);
+			} else {
+				if(flightLog.getSysConfig().dterm_lpf_hz!=null)    		drawMarkerLine(flightLog.getSysConfig().dterm_lpf_hz,  PLOTTED_BLACKBOX_RATE, 'D-TERM LPF cutoff', WIDTH, HEIGHT, (15*offset++) + MARGIN);
+				if(flightLog.getSysConfig().dterm_notch_hz!=null && flightLog.getSysConfig().dterm_notch_cutoff!=null ) {
+					if(flightLog.getSysConfig().dterm_notch_hz > 0 && flightLog.getSysConfig().dterm_notch_cutoff > 0) {
+						var gradient = canvasCtx.createLinearGradient(0,0,0,(HEIGHT));
+						gradient.addColorStop(1,   'rgba(128,128,255,0.10)');
+						gradient.addColorStop(0,   'rgba(128,128,255,0.35)');
+						drawMarkerLine(flightLog.getSysConfig().dterm_notch_hz,  PLOTTED_BLACKBOX_RATE, null, WIDTH, HEIGHT, (15*offset) + MARGIN, gradient, (flightLog.getSysConfig().dterm_notch_hz - flightLog.getSysConfig().dterm_notch_cutoff));
+						drawMarkerLine(flightLog.getSysConfig().dterm_notch_hz,  PLOTTED_BLACKBOX_RATE, 'D-TERM notch center', WIDTH, HEIGHT, (15*offset++) + MARGIN); // highlight the center
+						drawMarkerLine(flightLog.getSysConfig().dterm_notch_cutoff,  PLOTTED_BLACKBOX_RATE, 'D-TERM notch cutoff', WIDTH, HEIGHT, (15*offset++) + MARGIN);
+					}
 				}
 			}
+			offset++; // make some space!
+		} catch (e) {
+			console.log('Notch filter fieldName missing');
 		}
-		offset++; // make some space!
 		drawMarkerLine(fftData.maxNoiseIdx,  PLOTTED_BLACKBOX_RATE, 'Max motor noise', WIDTH, HEIGHT, (15*offset) + MARGIN, "rgba(255,0,0,0.50)", 3);
 
 		canvasCtx.restore();
