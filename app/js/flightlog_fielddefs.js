@@ -119,7 +119,10 @@ var
             "ONESHOT125",
             "ONESHOT42", 
             "MULTISHOT",
-            "BRUSHED"
+            "BRUSHED",
+            "DSHOT600",
+            "DSHOT300",
+            "DSHOT150"
     ]),
 
     MOTOR_SYNC = makeReadOnly([
@@ -165,6 +168,9 @@ var
 			"VELOCITY",
 			"DTERM_FILTER",
             "ANGLERATE",
+            "ESC_SENSOR",
+            "SCHEDULER",
+            "STACK"
     ]),
 
     SUPER_EXPO_YAW = makeReadOnly([

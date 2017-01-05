@@ -55,6 +55,9 @@ var FlightLogParser = function(logData) {
         //Predict the last time value written in the main stream
         FLIGHT_LOG_FIELD_PREDICTOR_LAST_MAIN_FRAME_TIME = 10,
 
+        //Predict that this field is minthrottle
+        FLIGHT_LOG_FIELD_PREDICTOR_MINMOTOR       = 11,
+
         //Home coord predictors appear in pairs (two copies of FLIGHT_LOG_FIELD_PREDICTOR_HOME_COORD). Rewrite the second
         //one we see to this to make parsing easier
         FLIGHT_LOG_FIELD_PREDICTOR_HOME_COORD_1   = 256,
@@ -256,6 +259,8 @@ var FlightLogParser = function(logData) {
             debug_mode:null,                // Selected Debug Mode
             features:null,                  // Activated features (e.g. MOTORSTOP etc)
             Craft_name:null,                // Craft Name
+            motorOutput:[null,null],        // Minimum and maximum outputs to motor's
+            digitalIdleOffset:null,         // min throttle for d-shot (as a percentage)
             unknownHeaders : []             // Unknown Extra Headers
         },
 
@@ -405,7 +410,13 @@ var FlightLogParser = function(logData) {
 
             // Betaflight Log Header Parameters
             case "minthrottle":
+                that.sysConfig[fieldName] = parseInt(fieldValue, 10);
+                that.sysConfig.motorOutput[0] = that.sysConfig[fieldName]; // by default, set the minMotorOutput to match minThrottle
+            break;
             case "maxthrottle":
+                that.sysConfig[fieldName] = parseInt(fieldValue, 10);
+                that.sysConfig.motorOutput[1] = that.sysConfig[fieldName]; // by default, set the maxMotorOutput to match maxThrottle
+            break;
             case "rcRate":
             case "rcExpo":
             case "rcYawExpo":
@@ -455,21 +466,30 @@ var FlightLogParser = function(logData) {
             case "dterm_filter_type":
             case "pidAtMinThrottle":
             case "itermThrottleGain":
+            case "itermThrottleThreshold":
             case "ptermSRateWeight":
+            case "setpointRelaxRatio":
             case "dtermSetpointWeight":
-            case "yawRateAccelLimit":
-            case "rateAccelLimit":
             case "gyro_soft_type":
             case "debug_mode":
                 that.sysConfig[fieldName] = parseInt(fieldValue, 10);
             break;
+
+            case "yawRateAccelLimit":
+            case "rateAccelLimit":
+                if(that.sysConfig.firmwareType == FIRMWARE_TYPE_BETAFLIGHT && semver.gte(that.sysConfig.firmwareVersion, '3.1.0')) {
+                    that.sysConfig[fieldName] = uint32ToFloat(fieldValue, 10);
+                } else {
+                    that.sysConfig[fieldName] = parseInt(fieldValue, 10);
+                }
+                break;
 
             case "yaw_lpf_hz":
             case "gyro_lowpass_hz":
             case "dterm_notch_hz":
             case "dterm_notch_cutoff":
             case "dterm_lpf_hz":
-                if(that.sysConfig.firmwareType == FIRMWARE_TYPE_BETAFLIGHT && that.sysConfig.firmware == 3.0 && that.sysConfig.firmwarePatch >= 1) {
+                if(that.sysConfig.firmwareType == FIRMWARE_TYPE_BETAFLIGHT && semver.gte(that.sysConfig.firmwareVersion, '3.0.1')) {
                     that.sysConfig[fieldName] = parseInt(fieldValue, 10);
                 } else {
                     that.sysConfig[fieldName] = parseInt(fieldValue, 10) / 100.0;
@@ -478,13 +498,15 @@ var FlightLogParser = function(logData) {
 
             case "gyro_notch_hz":
             case "gyro_notch_cutoff":
-                if(that.sysConfig.firmwareType == FIRMWARE_TYPE_BETAFLIGHT && that.sysConfig.firmware == 3.0 && that.sysConfig.firmwarePatch >= 1) {
+                if(that.sysConfig.firmwareType == FIRMWARE_TYPE_BETAFLIGHT && semver.gte(that.sysConfig.firmwareVersion, '3.0.1')) {
                     that.sysConfig[fieldName] = parseCommaSeparatedString(fieldValue);
                 } else {
                     that.sysConfig[fieldName] = parseInt(fieldValue, 10) / 100.0;
                 }
             break;
 
+            case "digitalIdleOffset":
+                    that.sysConfig[fieldName] = parseInt(fieldValue, 10) / 100.0;
 
             /**  Cleanflight Only log headers **/
             case "dterm_cut_hz":
@@ -515,6 +537,7 @@ var FlightLogParser = function(logData) {
             case "navrPID":
             case "levelPID":
             case "velPID":
+            case "motorOutput":
                 that.sysConfig[fieldName] = parseCommaSeparatedString(fieldValue);
             break;
             case "magPID":
@@ -536,16 +559,17 @@ var FlightLogParser = function(logData) {
                 that.sysConfig.currentMeterScale = currentMeterParams[1];
             break;
             case "gyro.scale":
-                that.sysConfig.gyroScale = hexToFloat(fieldValue);
+            case "gyro_scale":
+                    that.sysConfig.gyroScale = hexToFloat(fieldValue);
 
-                /* Baseflight uses a gyroScale that'll give radians per microsecond as output, whereas Cleanflight produces degrees
-                 * per second and leaves the conversion to radians per us to the IMU. Let's just convert Cleanflight's scale to
-                 * match Baseflight so we can use Baseflight's IMU for both: */
-                if (that.sysConfig.firmwareType == FIRMWARE_TYPE_INAV ||
-                    that.sysConfig.firmwareType == FIRMWARE_TYPE_CLEANFLIGHT ||
-                    that.sysConfig.firmwareType == FIRMWARE_TYPE_BETAFLIGHT) {
-                    that.sysConfig.gyroScale = that.sysConfig.gyroScale * (Math.PI / 180.0) * 0.000001;
-                }
+                    /* Baseflight uses a gyroScale that'll give radians per microsecond as output, whereas Cleanflight produces degrees
+                     * per second and leaves the conversion to radians per us to the IMU. Let's just convert Cleanflight's scale to
+                     * match Baseflight so we can use Baseflight's IMU for both: */
+                    if (that.sysConfig.firmwareType == FIRMWARE_TYPE_INAV ||
+                        that.sysConfig.firmwareType == FIRMWARE_TYPE_CLEANFLIGHT ||
+                        that.sysConfig.firmwareType == FIRMWARE_TYPE_BETAFLIGHT) {
+                        that.sysConfig.gyroScale = that.sysConfig.gyroScale * (Math.PI / 180.0) * 0.000001;
+                    }
             break;
             case "Firmware revision":
 
@@ -554,9 +578,10 @@ var FlightLogParser = function(logData) {
                 // Extract the firmware revision in case of Betaflight/Raceflight/Other
                 var matches = fieldValue.match(/(.*flight).* (\d+)\.(\d+)(\.(\d+))*/i);
                 if(matches!=null) {
-                    that.sysConfig.firmwareType  = FIRMWARE_TYPE_BETAFLIGHT;
-                    that.sysConfig.firmware      = parseFloat(matches[2] + '.' + matches[3]);
-                    that.sysConfig.firmwarePatch = (matches[5] != null)?parseInt(matches[5]):'';
+                    that.sysConfig.firmwareType    = FIRMWARE_TYPE_BETAFLIGHT;
+                    that.sysConfig.firmware        = parseFloat(matches[2] + '.' + matches[3]).toFixed(1);
+                    that.sysConfig.firmwarePatch   = (matches[5] != null)?parseInt(matches[5]):'0';
+                    that.sysConfig.firmwareVersion = that.sysConfig.firmware + '.' + that.sysConfig.firmwarePatch;
                     $('html').removeClass('isBaseF');
 					$('html').removeClass('isCF');
                     $('html').addClass('isBF');
@@ -924,6 +949,15 @@ var FlightLogParser = function(logData) {
                  * corresponding 32-bit signed values.
                  */
                 value = (value | 0) + that.sysConfig.minthrottle;
+            break;
+            case FLIGHT_LOG_FIELD_PREDICTOR_MINMOTOR:
+                /*
+                 * Force the value to be a *signed* 32-bit integer. Encoded motor values can be negative when motors are
+                 * below minthrottle, but despite this motor[0] is encoded in I-frames using *unsigned* encoding (to
+                 * save space for positive values). So we need to convert those very large unsigned values into their
+                 * corresponding 32-bit signed values.
+                 */
+                value = (value | 0) + (that.sysConfig.motorOutput[0] | 0); // motorOutput[0] is the min motor output
             break;
             case FLIGHT_LOG_FIELD_PREDICTOR_1500:
                 value += 1500;

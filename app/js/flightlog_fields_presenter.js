@@ -166,6 +166,27 @@ function FlightLogFieldPresenter() {
 							'debug[2]':'Not Used',
 							'debug[3]':'Not Used',
 						},
+            'ESC_SENSOR' : 	{
+                            'debug[all]':'ESC Sensor',
+                            'debug[0]':'Motor Index',
+                            'debug[1]':'Timeouts',
+                            'debug[2]':'Temperature',
+                            'debug[3]':'RPM',
+            },
+            'SCHEDULER' : 	{
+                            'debug[all]':'Scheduler',
+                            'debug[0]':'Not Used',
+                            'debug[1]':'Not Used',
+                            'debug[2]':'Schedule Time',
+                            'debug[3]':'Function Exec Time',
+            },
+            'STACK' : 	{
+                            'debug[all]':'Stack',
+                            'debug[0]':'Stack High Mem',
+                            'debug[1]':'Stack Low Mem',
+                            'debug[2]':'Stack Current',
+                            'debug[3]':'Stack p',
+            },
      };
     
     function presentFlags(flags, flagNames) {
@@ -257,7 +278,8 @@ function FlightLogFieldPresenter() {
                 return Math.round(flightLog.rcCommandRawToDegreesPerSecond(value,2), currentFlightMode) + " deg/s";
 
             case 'rcCommand[3]':
-            case 'motor[0]':            
+                return Math.round(flightLog.rcCommandRawToThrottle(value)) + " %";
+            case 'motor[0]':
             case 'motor[1]':            
             case 'motor[2]':            
             case 'motor[3]':            
@@ -265,7 +287,7 @@ function FlightLogFieldPresenter() {
             case 'motor[5]':            
             case 'motor[6]':            
             case 'motor[7]':            
-                return Math.round(flightLog.rcCommandRawToThrottle(value)) + " %";
+                return Math.round(flightLog.rcMotorRawToPct(value)) + " %";
 
             case 'rcCommands[0]':
             case 'rcCommands[1]':
@@ -292,11 +314,19 @@ function FlightLogFieldPresenter() {
                 return flightLog.accRawToGs(value).toFixed(2) + "g";
             
             case 'vbatLatest':
-                return (flightLog.vbatADCToMillivolts(value) / 1000).toFixed(2) + "V" + ", " + (flightLog.vbatADCToMillivolts(value) / 1000 / flightLog.getNumCellsEstimate()).toFixed(2) + "V/cell";
-    
+                if(flightLog.getSysConfig().firmwareType == FIRMWARE_TYPE_BETAFLIGHT && semver.gte(flightLog.getSysConfig().firmwareVersion, '3.1.0')) {
+                    return (value / 10).toFixed(2) + "V" + ", " + (value / 10 / flightLog.getNumCellsEstimate()).toFixed(2) + "V/cell";
+                } else {
+                    return (flightLog.vbatADCToMillivolts(value) / 1000).toFixed(2) + "V" + ", " + (flightLog.vbatADCToMillivolts(value) / 1000 / flightLog.getNumCellsEstimate()).toFixed(2) + "V/cell";
+                }
+
             case 'amperageLatest':
-                return (flightLog.amperageADCToMillivolts(value) / 1000).toFixed(2) + "A" + ", " + (flightLog.amperageADCToMillivolts(value) / 1000 / flightLog.getNumMotors()).toFixed(2) + "A/motor";
-    
+                if(flightLog.getSysConfig().firmwareType == FIRMWARE_TYPE_BETAFLIGHT && semver.gte(flightLog.getSysConfig().firmwareVersion, '3.1.0')) {
+                    return (value / 10).toFixed(2) + "A" + ", " + (value / 10 / flightLog.getNumMotors()).toFixed(2) + "A/motor";
+                } else {
+                    return (flightLog.amperageADCToMillivolts(value) / 1000).toFixed(2) + "A" + ", " + (flightLog.amperageADCToMillivolts(value) / 1000 / flightLog.getNumMotors()).toFixed(2) + "A/motor";
+                }
+
             case 'heading[0]':
             case 'heading[1]':
             case 'heading[2]':
@@ -370,7 +400,20 @@ function FlightLogFieldPresenter() {
 					return "";
                 case 'ANGLERATE':
                     return value.toFixed(0) + "deg/s";
-				default:
+                case 'ESC_SENSOR':
+                    switch (fieldName) {
+                        case 'debug[2]':
+                            return value.toFixed(0) + "°C";
+                        case 'debug[3]':
+                            return value.toFixed(0) + "rpm";
+                        default:
+                            return value.toFixed(0) + "\u03BCS";
+                    }
+                case 'SCHEDULER':
+                        return value.toFixed(0) + "\u03BCS";
+                case 'STACK':
+                    return value.toFixed(0);
+                default:
 					return "";
 			}	
 		}
