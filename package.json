@@ -31,6 +31,9 @@
       "title" : "Betafight Blackbox Viewer",
       "icon" : "resources/images/icons/bf_blackbox_logo.ico"
     },
+    "linux" : {
+      "category" : "System"
+    },
     "dmg" : {
       "title": "Betafight Blackbox Viewer",
       "background": "resources/images/background.png",
@@ -40,6 +43,13 @@
         { "x": 66, "y": 280, "type": "link", "path": "/Applications" },
         { "x": 66, "y": 170, "type": "file" }
       ]
+    },
+    "fileAssociations" : {
+      "ext" : "bfl",
+      "name" : "BFL",
+      "desciption" : "Betaflight Log File",
+      "role" : "Viewer",
+      "isPackage" : "false"
     }
   },
   "devDependencies": {
