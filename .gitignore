@@ -6,3 +6,7 @@
 .idea/tasks.xml
 /.idea/
 /packages
+/dist/mac/*.app
+/dist/mac/*.zip
+/dist/win-unpacked
+/dist/linux-unpacked
