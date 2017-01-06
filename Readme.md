@@ -1,38 +1,22 @@
-# electron-quick-start
+# Betaflight Enhanced Blackbox Explorer
 
-**Clone and run for a quick way to see an Electron in action.**
+![Main explorer interface](app/screenshots/main-interface.jpg)
 
-This is a minimal Electron application based on the [Quick Start Guide](http://electron.atom.io/docs/latest/tutorial/quick-start) within the Electron documentation.
+This tool allows you to open logs recorded by Betaflight's Blackbox feature as a native application. You can seek through the log to examine graphed values at each timestep. If you have a flight video, you can load that in as well and it'll be played behind the log.
 
-**Use this app along with the [Electron API Demos](http://electron.atom.io/#get-started) app for API code examples to help you get started.**
+## Installation
 
-A basic Electron application needs just these files:
+As native applications, the simplest installation is to download the installer file and execute/run it.
+* For MacOS, download the **.DMG** file and open it; drag the Betaflight Blackbox Explorer Icon into the applications folder and run it as a normal Mac application.
+![MacOS Install](app/screenshots/BF Install-MacOS.png)
+* For Windows x64, download the Betaflight Blackbox Explorer Setup.exe file and run the installation.
+![Windows Install](app/screenshots/BF Install-Win.png)
 
-- `package.json` - Points to the app's main file and lists its details and dependencies.
-- `main.js` - Starts the app and creates a browser window to render HTML. This is the app's **main process**.
-- `index.html` - A web page to render. This is the app's **renderer process**.
 
-You can learn more about each of these components within the [Quick Start Guide](http://electron.atom.io/docs/latest/tutorial/quick-start).
+## Credits
+This project is a derivative of the outstanding work carried out originally by TheNickDude on the vanilla Cleanflight Blackbox Explorer.
 
-## To Use
+Many individuals in the community have helped develop, test and maintain this project, there help is greatly appreciated.
+## License
 
-To clone and run this repository you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
-
-```bash
-# Clone this repository
-git clone https://github.com/electron/electron-quick-start
-# Go into the repository
-cd electron-quick-start
-# Install dependencies and run the app
-npm install && npm start
-```
-
-Learn more about Electron and its API in the [documentation](http://electron.atom.io/docs/latest).
-
-## Other Example Apps
-
-For more example apps, see the
-[list of boilerplates](http://electron.atom.io/community/#boilerplates)
-created by the awesome electron community.
-
-#### License [CC0 1.0 (Public Domain)](LICENSE.md)
+This project is licensed under [GPLv3.](LICENSE.md)
