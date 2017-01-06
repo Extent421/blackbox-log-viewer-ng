@@ -6,7 +6,15 @@
   "scripts": {
     "postinstall": "install-app-deps",
     "start": "electron .",
-    "package": "electron-packager . 'Betaflight Blackbox Viewer' --out=./packages --version=1.4.3 --icon=resources/images/icons/bf_blackbox_logo.icns --overwrite",
+    "start:dev": "electron . --enable-logging",
+    "clean:all": "rm -rf ./packages",
+    "clean:osx": "rm -rf ./packages/osx",
+    "clean:win": "rm -rf ./packages/win",
+    "clean:linux": "rm -rf ./packages/linux",
+    "pack:osx": "npm run clean:osx && electron-packager . 'Betaflight Blackbox Viewer' --out=./packages/osx --ignore=packages --platform=darwin --arch=all --version=1.4.3 --icon=resources/images/icons/bf_blackbox_logo.icns --overwrite",
+    "pack:win": "npm run clean:win && electron-packager . 'Betaflight Blackbox Viewer' --out=./packages/win --ignore=packages --platform=win32  --arch=all --version=1.4.3 --icon=resources/images/icons/bf_blackbox_logo.ico --overwrite",
+    "pack:linux": "npm run clean:linux && electron-packager . 'Betaflight Blackbox Viewer' --out=./packages/linux --ignore=packages --platform=linux  --arch=all --version=1.4.3 --icon=resources/images/icons/bf_blackbox_logo.icns --overwrite",
+    "pack:all": "npm run pack:osx && npm run pack:win && npm run pack:linux",
     "build": "build"
   },
   "build": {
@@ -25,12 +33,12 @@
   "dependencies": {
     "electron": "1.4.3"
   },
-  "repository": "https://github.com/GaryKeeble/electron-blackbox-log-viewer",
+  "repository": "https://github.com/GaryKeeble/blackbox-log-viewer-ng",
   "keywords": [
     "betaflight",
     "blackbox",
     "viewer"
   ],
   "author": "Gary.S.Keeble",
-  "license": "CC0-1.0"
+  "license": "GPLv3"
 }
