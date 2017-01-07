@@ -44,7 +44,7 @@ A linux installer is not supported yet;
 1. Auto Update is not functioning yet.
 
 ## Development Versions
-If you want to beta test the very latest development versions, then either download the native version directly from the **/install** folder and install;
+If you want to beta test the very latest development versions, then either download the native version directly from the **/dist** folder and install;
 or download the Chrome App Extension by downloading the whole repository and pointing the extension to the **/app** folder.
 
 ## Credits
