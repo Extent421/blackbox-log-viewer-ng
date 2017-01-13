@@ -16,7 +16,7 @@ _The Google Chrome App is soon going to be obsolete and unavailable_; the follow
 1. Manually, As a unpacked Chrome extension; download the source from the releases page to your local machine, then goto the [Extension Manager](chrome://extensions/). Ensure Developer Mode is ticked, then select "Load Unpacked Extension"; choose the **/app** folder within the source.
 1. Manually, As a Web Page, download the source from the releases page and navigate to the **/app** folder; in chrome, open the index.html file.
 
-`v2.5.8 is the last version to support the Google Chrome Store; USE THE FOLLOWING METHOD FOR v2.5.8 ONWARDS`
+`v2.5.9 is the last version to support the Google Chrome Store; USE THE FOLLOWING METHOD FOR v2.5.9 ONWARDS`
 
 ### As Native Windows or MacOS Application
 
