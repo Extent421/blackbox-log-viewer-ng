@@ -67,6 +67,12 @@ function FlightLogFieldPresenter() {
         'axisError[1]' : 'PID_Error[pitch]',
         'axisError[2]' : 'PID_Error[yaw]',
 
+        //Virtual fields 
+        'angAcc[all]': 'angular_acceleration',
+        'angAcc[0]' : 'angular_acceleration[roll]',
+        'angAcc[1]' : 'angular_acceleration[pitch]',
+        'angAcc[2]' : 'angular_acceleration[yaw]',
+
         //Virtual fields - add the Scaled rcCommands
         'rcCommands[all]': 'setpointRates',
         'rcCommands[0]' : 'setpointRate[roll]',
@@ -269,6 +275,11 @@ function FlightLogFieldPresenter() {
             case 'axisError[1]':
             case 'axisError[2]':
                 return Math.round(value) + " deg/s";
+
+            case 'angAcc[0]':
+            case 'angAcc[1]':
+            case 'angAcc[2]':
+                return Math.round(value) + " deg/s^2";
 
             case 'rcCommand[0]':
                 return Math.round(flightLog.rcCommandRawToDegreesPerSecond(value,0), currentFlightMode) + " deg/s";

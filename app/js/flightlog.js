@@ -11,7 +11,7 @@
  */
 function FlightLog(logData) {
     var
-        ADDITIONAL_COMPUTED_FIELD_COUNT = 15, /** attitude + PID_SUM + PID_ERROR + RCCOMMAND_SCALED + GYROADC_SCALED **/
+        ADDITIONAL_COMPUTED_FIELD_COUNT = 18, /** attitude + PID_SUM + PID_ERROR + RCCOMMAND_SCALED + GYROADC_SCALED + ANGACC **/
 
         that = this,
         logIndex = false,
@@ -228,6 +228,7 @@ function FlightLog(logData) {
         fieldNames.push("axisError[0]", "axisError[1]", "axisError[2]"); // Custom calculated error field
         fieldNames.push("rcCommands[0]", "rcCommands[1]", "rcCommands[2]"); // Custom calculated error field
         fieldNames.push("gyroADCs[0]", "gyroADCs[1]", "gyroADCs[2]"); // Custom calculated error field
+        fieldNames.push("angAcc[0]", "angAcc[1]", "angAcc[2]"); // Custom calculated error field
 
         fieldNameToIndex = {};
         for (i = 0; i < fieldNames.length; i++) {
@@ -505,6 +506,7 @@ function FlightLog(logData) {
             accSmooth = [fieldNameToIndex["accSmooth[0]"], fieldNameToIndex["accSmooth[1]"], fieldNameToIndex["accSmooth[2]"]],
             magADC = [fieldNameToIndex["magADC[0]"], fieldNameToIndex["magADC[1]"], fieldNameToIndex["magADC[2]"]],
             rcCommand = [fieldNameToIndex["rcCommand[0]"], fieldNameToIndex["rcCommand[1]"], fieldNameToIndex["rcCommand[2]"]],
+            angAcc = [fieldNameToIndex["angAcc[0]"], fieldNameToIndex["angAcc[1]"], fieldNameToIndex["angAcc[2]"]],
 
             flightModeFlagsIndex = fieldNameToIndex["flightModeFlags"], // This points to the flightmode data
 
@@ -593,6 +595,21 @@ function FlightLog(logData) {
                         destFrame[fieldIndex++] =
                             (gyroADC[axis] !== undefined ? that.gyroRawToDegreesPerSecond(srcFrame[gyroADC[axis]]) : 0);
                         }
+
+                    // Calculate angular acceleration
+                    var backIndex = 1
+                    if (i==0) { backIndex = -1 }
+                    var prevSrcFrame = sourceChunk.frames[ i-backIndex ]
+                    var frameTime = srcFrame[FlightLogParser.prototype.FLIGHT_LOG_FIELD_INDEX_TIME]
+                    var prevFrameTime = prevSrcFrame[FlightLogParser.prototype.FLIGHT_LOG_FIELD_INDEX_TIME]
+                    var frameDelta = Math.abs(frameTime-prevFrameTime)
+                    var timeComp = (1/(frameDelta/1000000))
+                    for (var axis = 0; axis < 3; axis++) {
+                        destFrame[fieldIndex++] =
+                            (gyroADC[axis] !== undefined ? ( that.gyroRawToDegreesPerSecond(srcFrame[gyroADC[axis]]) - 
+                            that.gyroRawToDegreesPerSecond(prevSrcFrame[gyroADC[axis]]) ) * timeComp * backIndex : 0) ;
+                        }
+                    
 
                 }
             }

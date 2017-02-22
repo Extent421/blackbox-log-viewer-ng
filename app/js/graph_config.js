@@ -205,6 +205,10 @@ GraphConfig.load = function(config) {
             {
                 label: "Accelerometers",
                 fields: ["accSmooth[all]"]
+            },
+            {
+                label: "Angular Acceleration",
+                fields: ["angAcc[all]"]
             }
         ];
 
@@ -266,6 +270,13 @@ GraphConfig.load = function(config) {
                     offset: 0,
                     power: 0.25, /* Make this 1.0 to scale linearly */
                     inputRange: flightLog.gyroRawToDegreesPerSecond((2.0e-3 * Math.PI/180) / sysConfig.gyroScale),
+                    outputRange: 1.0
+                };
+            } else if (fieldName.match(/^angAcc\[/)    ) { 
+                return {
+                    offset: 0,
+                    power: 2.0,
+                    inputRange: 30000,
                     outputRange: 1.0
                 };
             } else if (fieldName.match(/^axis.+\[/)) {
